@@ -275,6 +275,7 @@
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Access to the microphone is needed for live video descriptions";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Access to your photo library is needed to save videos and photos taken.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Access to your photo library is needed to access videos and photos taken.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Speech recognition is needed to transcribe your audio.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -311,6 +312,7 @@
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Access to the microphone is needed for live video descriptions";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Access to your photo library is needed to save videos and photos taken.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Access to your photo library is needed to access videos and photos taken.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Speech recognition is needed to transcribe your audio.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

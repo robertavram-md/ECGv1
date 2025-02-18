@@ -54,7 +54,7 @@ fileprivate var runtimeConfiguration: HuggingSnapModelConfiguration = HuggingSna
 class VLMEvaluator {
 
     var running = false
-
+    var customUserInput = ""
     var output = ""
     var modelInfo = "Initializing model..."
     var stat = ""
@@ -130,13 +130,16 @@ class VLMEvaluator {
 
         running = true
         self.output = ""
+        
+        let orientedImage = image?.oriented(.right)
+        
 
         do {
             let modelContainer = try await load()
             let result = try await modelContainer.perform { context in
                 let images: [UserInput.Image] =
-                    if let image {
-                        [UserInput.Image.ciImage(image)]
+                    if let orientedImage {
+                        [UserInput.Image.ciImage(orientedImage)]
                     } else {
                         []
                     }
@@ -148,7 +151,7 @@ class VLMEvaluator {
                     }
 
                 let systemPrompt = videoURL != nil ? runtimeConfiguration.videoSystemPrompt : runtimeConfiguration.photoSystemPrompt
-                let userPrompt = videoURL != nil ? runtimeConfiguration.videoUserPrompt : runtimeConfiguration.photoUserPrompt
+                let userPrompt = await customUserInput.isEmpty ? (videoURL != nil ? runtimeConfiguration.videoUserPrompt : runtimeConfiguration.photoUserPrompt):customUserInput
 
                 // Note: the image order is different for smolvlm
                 let messages: [Message] = [

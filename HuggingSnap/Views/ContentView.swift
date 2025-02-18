@@ -7,6 +7,7 @@
 import AVKit
 import PhotosUI
 import SwiftUI
+import CoreHaptics
 
 // TODO: Stop streaming when not displayed
 // TODO: Add video recording
@@ -37,6 +38,9 @@ struct ContentView: View {
     @State var llm = VLMEvaluator()
     @State var isLLMLoaded: Bool = false
     
+    // Custom Haptics
+    @State private var engine: CHHapticEngine?
+    
     var body: some View {
         ZStack {
             Color.black.edgesIgnoringSafeArea(.vertical)
@@ -48,33 +52,38 @@ struct ContentView: View {
                     .edgesIgnoringSafeArea(.vertical)
 #endif
             case .loadedMovie(let movie):
-                ZStack {
-                    Color.clear
-                        .edgesIgnoringSafeArea(.vertical)
-                }.background {
-                    VideoPlayer(player: player)
-                        .aspectRatio(contentMode: .fill)
-                        .edgesIgnoringSafeArea(.vertical)
-                        .onAppear() {
-                            setupPlayer(with: movie.url)
-                        }
-                    
+                Group {
+                    ZStack {
+                        Color.clear
+                            .edgesIgnoringSafeArea(.vertical)
+                    }.background {
+                        VideoPlayer(player: player)
+                            .aspectRatio(contentMode: .fill)
+                            .edgesIgnoringSafeArea(.vertical)
+                            .onAppear() {
+                                setupPlayer(with: movie.url)
+                            }
+                        
+                    }
                 }
+                .ignoresSafeArea(.keyboard)
                 //
             case .loadedImage(let image):
                 //                // Handle loaded image
                 //                // Little hacky but needed otherwise buttons overflow on edges
                 //                // Do not be tempted to remove
-                ZStack {
-                    Color.clear.edgesIgnoringSafeArea(.vertical)
-                }.background {
-                    Image(uiImage: image)
-                        .resizable()
-                        .edgesIgnoringSafeArea(.vertical)
-                        .aspectRatio(contentMode: .fill)
-                        .edgesIgnoringSafeArea(.vertical)
-                    //
-                }
+                Group {
+                    ZStack {
+                        Color.clear.edgesIgnoringSafeArea(.vertical)
+                    }.background {
+                        Image(uiImage: image)
+                            .resizable()
+                            .edgesIgnoringSafeArea(.vertical)
+                            .aspectRatio(contentMode: .fill)
+                            .edgesIgnoringSafeArea(.vertical)
+                        //
+                    }
+                }.ignoresSafeArea(.keyboard)
                 //
             }
         }
@@ -101,7 +110,7 @@ struct ContentView: View {
                         .environmentObject(model)
                         .environment(llm)
                         .padding()
-                        .padding(.horizontal, 40)
+                        
                         .preferredColorScheme(.dark)
                 }
             }
@@ -156,8 +165,6 @@ struct ContentView: View {
                                     .font(.caption)
                                     .fontWeight(.semibold)
                                     
-                                //                        .opacity(llm.)
-                                    
                             }
                             .padding(.vertical, 10)
                             .padding(.horizontal, 15)
@@ -186,6 +193,13 @@ struct ContentView: View {
                 }
             }
         }
+        
+        .onChange(of: llm.running) { oldValue, newValue in
+            if newValue == false { // on llm completion
+                triggerHapticsOnFinish()
+            }
+        }
+        
         .onChange(of: model.movieURL) {
             if !model.isRecording {
                 if let movieURL = model.movieURL {
@@ -228,6 +242,7 @@ struct ContentView: View {
                 }
             }
         }
+        .onAppear { prepareHaptics() }
         .task {
 #if !targetEnvironment(simulator)
             _ = try? await llm.load()
@@ -237,6 +252,50 @@ struct ContentView: View {
                 }
             }
 #endif
+        }
+    }
+    
+    // MARK: Helpers
+    private func prepareHaptics() {
+        guard CHHapticEngine.capabilitiesForHardware().supportsHaptics else { return }
+
+        do {
+            engine = try CHHapticEngine()
+            try engine?.start()
+        } catch {
+            print("There was an error creating the engine: \(error.localizedDescription)")
+        }
+    }
+    
+    func triggerHapticsOnFinish() {
+        guard CHHapticEngine.capabilitiesForHardware().supportsHaptics else { return }
+        var events = [CHHapticEvent]()
+
+        // sharp tap
+        let intensity = CHHapticEventParameter(parameterID: .hapticIntensity, value: 1)
+        let sharpness = CHHapticEventParameter(parameterID: .hapticSharpness, value: 1)
+        let event = CHHapticEvent(eventType: .hapticTransient, parameters: [intensity, sharpness], relativeTime: 0)
+        events.append(event)
+        
+        // two soft taps
+        let intensity2 = CHHapticEventParameter(parameterID: .hapticIntensity, value: 0.6)
+        let sharpness2 = CHHapticEventParameter(parameterID: .hapticSharpness, value: 0.4)
+        let event2 = CHHapticEvent(eventType: .hapticTransient, parameters: [intensity2, sharpness2], relativeTime: 0.1)
+        events.append(event2)
+
+        
+        let intensity3 = CHHapticEventParameter(parameterID: .hapticIntensity, value: 0.3)
+        let sharpness3 = CHHapticEventParameter(parameterID: .hapticSharpness, value: 0.2)
+        let event3 = CHHapticEvent(eventType: .hapticTransient, parameters: [intensity3, sharpness3], relativeTime: 0.2)
+        events.append(event3)
+
+        
+        do {
+            let pattern = try CHHapticPattern(events: events, parameters: [])
+            let player = try engine?.makePlayer(with: pattern)
+            try player?.start(atTime: 0)
+        } catch {
+            print("Failed to play pattern: \(error.localizedDescription).")
         }
     }
     
@@ -257,264 +316,6 @@ struct ContentView: View {
     }
 }
 
-struct ControlView: View {
-    
-    @EnvironmentObject var model: ContentViewModel
-    
-    // Bindings
-    @Binding var selectedItem: PhotosPickerItem?
-    
-    @State private var isProcessing = false
-    
-    // Main button
-    @Binding var isCaptured: Bool
-    @State private var scaleDown: Bool = false
-    @State private var rotation: Double = 0
-    @State private var opacity: Double = 0.3
-    
-    @Environment(VLMEvaluator.self) private var llm
-    @Binding var loadState: LoadState
-
-    private var gradient: AngularGradient {
-        AngularGradient(
-            gradient: Gradient(colors: [
-                .clear,
-                .white.opacity(opacity+0.1),
-                .clear,
-                .white.opacity(opacity),
-                .clear,
-                .white.opacity(opacity+0.1),
-            ]),
-            center: .center,
-            startAngle: .degrees(270),
-            endAngle: .degrees(0)
-        )
-    }
-    
-    var body: some View {
-        
-        VStack(alignment: .center, spacing: 20) {
-            
-            if isCaptured {
-                HStack(spacing: 20) {
-                    if case .loadedImage(let uIImage) = loadState {
-                        Button {
-                            // Image description
-                            Task {
-                                let ciImage = CIImage(image: uIImage)
-                                await llm.generate(image: ciImage ?? CIImage(), videoURL: nil)
-                            }
-                            
-                        } label: {
-                            Label("Describe", systemImage: "text.quote")
-                                .foregroundStyle(.white)
-                                .fontWeight(.semibold)
-                                .font(.footnote)
-                                .padding(.vertical, 7)
-                                .padding(.horizontal, 12)
-                                .background {
-                                    Capsule()
-                                        .fill(.ultraThickMaterial)
-                                }
-                        }
-                        .transition(.blurReplace.combined(with: .scale))
-                    }
-                    
-                    if case .loadedMovie(let video) = loadState {
-                        Button {
-                            Task {
-                                await llm.generate(image: nil, videoURL: video.url)
-                            }
-                        } label: {
-                            Label("Summarize", systemImage: "text.append")
-                                .foregroundStyle(.white)
-                                .fontWeight(.semibold)
-                                .font(.footnote)
-                                .padding(.vertical, 7)
-                                .padding(.horizontal, 12)
-                                .background {
-                                    Capsule()
-                                        .fill(.ultraThickMaterial)
-                                }
-                        }
-                    }
-                }
-                .frame(maxWidth: .infinity, alignment: .center)
-            }
-            
-            HStack {
-                PhotosPicker(selection: $selectedItem,
-                             matching: .any(of: [.images, .videos])) {
-                    ZStack {
-                        Circle()
-                            .fill(.regularMaterial)
-                            .frame(width: 50, height: 50)
-                        Image(systemName: "photo.fill.on.rectangle.fill")
-                            .foregroundStyle(.white)
-                            .fontWeight(.bold)
-                    }
-                }
-                
-                Spacer()
-                
-                
-                
-                // Capture button which serves as photo capture and video recording
-                ZStack {
-                    ZStack {
-                        Circle()
-                            .fill(.white)
-                            .frame(width: 20)
-                        TransparentBlurView(removeAllFilters: true)
-                            .blur(radius: 9, opaque: true)
-                            .background(.white.opacity(0.05))
-                    }
-                    .clipShape(.circle)
-                    .frame(width: 60, height: 60)
-                    
-                    
-                    Circle()
-                        .stroke(gradient, lineWidth: 1)
-                        .frame(width: 80, height: 80)
-                    
-                        .rotationEffect(.degrees(rotation))
-                        .onAppear {
-                            withAnimation(.linear(duration: 20)
-                                .repeatForever(autoreverses: false)) {
-                                    rotation = 360
-                                }
-                            
-                            withAnimation(
-                                .easeInOut(duration: 4)
-                                .repeatForever(autoreverses: true)
-                            ) {
-                                opacity = 0.4
-                            }
-                        }
-                    
-                    ZStack {
-                        if isCaptured {
-                            Image(systemName: "xmark")
-                                .foregroundStyle(.white)
-                                .fontWeight(.bold)
-                                .imageScale(.large)
-                                .transition(.blurReplace)
-                                .contentShape(.rect)
-                        } else {
-                            RoundedRectangle(cornerRadius: scaleDown ? 24:100)
-                                .fill(scaleDown ? .red:.white)
-                                .frame(width: 70, height: 70)
-                                .transition(.blurReplace)
-                                .scaleEffect(scaleDown ? 0.65 : 1)
-                        }
-                    }
-                    .frame(width: 70, height: 70)
-                    .contentShape(.rect)
-                    .gesture(
-                        DragGesture(minimumDistance: 0)
-                            .onChanged { _ in
-                                if !model.isRecording {
-                                    withAnimation {
-                                        scaleDown = true
-                                    }
-#if targetEnvironment(simulator)
-#else
-                                    if !model.isRecording {
-                                        model.toggleRecording()
-                                    }
-#endif
-                                }
-                            }
-                            .onEnded { _ in
-                                withAnimation(.smooth(duration: 0.1)) {
-                                    scaleDown = false
-                                }
-                                if !isCaptured {
-#if targetEnvironment(simulator)
-#else
-                                    if model.isRecording {
-                                        model.toggleRecording()
-                                    }
-#endif
-                                }
-                            }
-                    )
-                    .highPriorityGesture(
-                        TapGesture()
-                            .onEnded {
-                                if !isCaptured {
-#if targetEnvironment(simulator)
-#else
-                                    model.capturePhoto()
-#endif
-                                } else {
-                                    clearAllInputs()
-                                }
-                                
-                            }
-                    )
-                    
-                }
-                
-                Spacer()
-                Button {
-#if targetEnvironment(simulator)
-#else
-                    model.switchCamera()
-#endif
-                } label: {
-                    ZStack {
-                        Circle()
-                            .fill(.regularMaterial)
-                            .frame(width: 50, height: 50)
-                        Image(systemName: "arrow.triangle.2.circlepath")
-                            .foregroundStyle(.white)
-                            .fontWeight(.bold)
-                    }
-                }
-                .disabled(isCaptured)
-            }
-        }
-        .preferredColorScheme(.dark)
-        .animation(.spring, value: isCaptured)
-    }
-    
-    func clearAllInputs() {
-        model.toggleStreaming()
-        model.movieURL = nil
-        model.photo = nil
-        selectedItem = nil
-        isCaptured = false
-        loadState = .unknown
-        llm.output = ""
-    }
-}
-
-struct Video: Transferable {
-    let url: URL
-    
-    static var transferRepresentation: some TransferRepresentation {
-        FileRepresentation(contentType: .movie) { movie in
-            SentTransferredFile(movie.url)
-        } importing: { received in
-            let copy = URL.documentsDirectory.appending(path: "movie.mp4")
-            
-            if FileManager.default.fileExists(atPath: copy.path()) {
-                try FileManager.default.removeItem(at: copy)
-            }
-            
-            try FileManager.default.copyItem(at: received.file, to: copy)
-            return Self.init(url: copy)
-        }
-    }
-}
-
-extension AVPlayerViewController {
-    override open func viewDidLoad() {
-        super.viewDidLoad()
-        self.showsPlaybackControls = false
-    }
-}
 
 #Preview {
     ContentView()

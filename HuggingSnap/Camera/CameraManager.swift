@@ -6,6 +6,7 @@
 ////
 
 import AVFoundation
+import UIKit
 
 class CameraManager: NSObject, ObservableObject {
     enum Status {
@@ -33,9 +34,10 @@ class CameraManager: NSObject, ObservableObject {
     
     let session = AVCaptureSession()
     
-    private let sessionQueue = DispatchQueue(label: "com.raywenderlich.SessionQ")
+    private let sessionQueue = DispatchQueue(label: "com.cyrilzakka.SessionQ")
     private let videoOutput = AVCaptureVideoDataOutput()
     private var status = Status.unconfigured
+    private var rotationCoordinator: AVCaptureDevice.RotationCoordinator?
     
     private override init() {
         super.init()
@@ -210,10 +212,31 @@ class CameraManager: NSObject, ObservableObject {
         }
     }
     
+    private func videoOrientation() -> AVCaptureVideoOrientation {
+        let deviceOrientation = UIDevice.current.orientation
+        
+        switch deviceOrientation {
+        case .portrait:
+            return .portrait
+        case .portraitUpsideDown:
+            return .portraitUpsideDown
+        case .landscapeLeft:
+            return .landscapeRight  // Note the flip for correct orientation
+        case .landscapeRight:
+            return .landscapeLeft   // Note the flip for correct orientation
+        default:
+            return .portrait // Default to portrait if face up/down or unknown
+        }
+    }
+    
     func capturePhoto() {
         sessionQueue.async {
             let photoSettings = AVCapturePhotoSettings()
             photoSettings.photoQualityPrioritization = .quality
+            
+            if let photoOutputConnection = self.photoOutput.connection(with: .video) {
+                photoOutputConnection.videoOrientation = self.videoOrientation()
+            }
             
             self.photoOutput.capturePhoto(with: photoSettings, delegate: self)
         }
