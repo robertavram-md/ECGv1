@@ -113,7 +113,8 @@ class CameraManager: NSObject, ObservableObject {
         
         if session.canAddOutput(photoOutput) {
             session.addOutput(photoOutput)
-            photoOutput.maxPhotoQualityPrioritization = .quality
+            photoOutput.maxPhotoQualityPrioritization = .speed
+            photoOutput.isLivePhotoCaptureEnabled = false
         } else {
             set(error: .cannotAddOutput)
             status = .failed
@@ -232,7 +233,7 @@ class CameraManager: NSObject, ObservableObject {
     func capturePhoto() {
         sessionQueue.async {
             let photoSettings = AVCapturePhotoSettings()
-            photoSettings.photoQualityPrioritization = .quality
+            photoSettings.photoQualityPrioritization = .speed
             
             if let photoOutputConnection = self.photoOutput.connection(with: .video) {
                 photoOutputConnection.videoOrientation = self.videoOrientation()
@@ -323,7 +324,6 @@ extension CameraManager: AVCapturePhotoCaptureDelegate {
         }
         
         DispatchQueue.main.async {
-            print(imageData)
             self.photo = imageData
         }
     }
