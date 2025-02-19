@@ -93,6 +93,11 @@ class VLMEvaluator {
                 // limit the buffer cache
                 MLX.GPU.set(cacheLimit: 20 * 1024 * 1024)
 
+                // This may make things very slow when way over the limit
+                // TODO: make this dependent on device + max number of frames
+                let maxMetalMemory = Int(round(0.82 * Double(os_proc_available_memory())))
+                MLX.GPU.set(memoryLimit: maxMetalMemory, relaxed: false)
+
                 // Load runtime configuration
                 // TODO: use a fallback if we can't download - ideally the one from the previous run
                 // Fine-grained read-only token for the HuggingFaceTB org
