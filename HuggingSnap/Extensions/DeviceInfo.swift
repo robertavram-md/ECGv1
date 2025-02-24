@@ -14,11 +14,9 @@ extension UIDevice {
         let screenSize = UIScreen.main.bounds.size
         let scale = UIScreen.main.scale
         
-        // Get app version
         let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
         let buildNumber = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "Unknown"
         
-        // Get memory information
         let physicalMemory = ProcessInfo.processInfo.physicalMemory
         let memoryFormatter = ByteCountFormatter()
         memoryFormatter.allowedUnits = [.useGB]
@@ -54,6 +52,7 @@ extension UIDevice {
         
         ---- Current Process Info ----
         \(getProcessMemoryInfo())
+        Available Memory: \(getAvailableMemory())
         """
     }
     
@@ -76,5 +75,13 @@ extension UIDevice {
         } else {
             return "Unable to retrieve memory info"
         }
+    }
+    
+    static func getAvailableMemory() -> String {
+        let availableMemory = os_proc_available_memory()
+        let formatter = ByteCountFormatter()
+        formatter.allowedUnits = [.useAll]
+        formatter.countStyle = .memory
+        return formatter.string(fromByteCount: Int64(availableMemory))
     }
 }
