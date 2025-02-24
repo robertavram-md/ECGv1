@@ -41,6 +41,9 @@ struct ContentView: View {
     // Custom Haptics
     @State private var engine: CHHapticEngine?
     
+    // Settings
+    @State private var showSettings: Bool = false
+    
     var body: some View {
         ZStack {
             Color.black.edgesIgnoringSafeArea(.vertical)
@@ -90,10 +93,18 @@ struct ContentView: View {
         .overlay {
             ZStack(alignment: .bottom) {
                 VStack(spacing: 0) {
-                    //                    if !llm.output.isEmpty {
+                    HStack {
+                        Button(action: { showSettings = true }, label: {
+                            Image(systemName: "gearshape")
+                                .fontWeight(.bold)
+                                .foregroundStyle(.white.secondary)
+                        })
+                        Spacer()
+                    }.padding(.horizontal, 40)
+                    
                     MessageView(text: llm.output)
                         .opacity(llm.output.isEmpty ? 0:1)
-                    //                    }
+                    
                     Spacer()
                     if !isLLMLoaded {
                         Text(llm.modelInfo)
@@ -115,7 +126,10 @@ struct ContentView: View {
                 }
             }
         }
+        
+        // MARK: Loading view
         .overlay {
+#if !targetEnvironment(simulator)
             if !isLLMLoaded {
                 ZStack {
                     Rectangle()
@@ -180,6 +194,7 @@ struct ContentView: View {
                     
                 }
             }
+#endif
         }
         // Detect photo capture
         .onChange(of: model.photo) {
@@ -193,13 +208,11 @@ struct ContentView: View {
                 }
             }
         }
-        
         .onChange(of: llm.running) { oldValue, newValue in
             if newValue == false { // on llm completion
                 triggerHapticsOnFinish()
             }
         }
-        
         .onChange(of: model.movieURL) {
             if !model.isRecording {
                 if let movieURL = model.movieURL {
@@ -253,6 +266,9 @@ struct ContentView: View {
             }
 #endif
         }
+        .sheet(isPresented: $showSettings, content: {
+            SettingsView()
+        })
     }
     
     // MARK: Helpers
