@@ -101,8 +101,8 @@ class VLMEvaluator {
                 // Load runtime configuration
                 // TODO: use a fallback if we can't download - ideally the one from the previous run
                 // Fine-grained read-only token for the HuggingFaceTB org
-                let hubApi = HubApi(hfToken: "")
-                let config = try await loadConfiguration(hub: hubApi)
+                let hubApi = HubApi()
+                let config = try await loadConfiguration(hub: HubApi())
                 runtimeConfiguration = config
 
                 let modelConfiguration = ModelConfiguration(id: config.model, defaultPrompt: config.photoUserPrompt)
