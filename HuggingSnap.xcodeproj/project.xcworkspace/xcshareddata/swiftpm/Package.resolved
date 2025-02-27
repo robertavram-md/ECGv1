@@ -34,7 +34,7 @@
       "location" : "https://github.com/cyrilzakka/mlx-swift-examples",
       "state" : {
         "branch" : "main",
-        "revision" : "2807b886eae4755bb97c8a6da0846d28861af7ce"
+        "revision" : "61a95b957083b73c2a7d19e748530730c242ed7d"
       }
     },
     {
@@ -60,8 +60,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/swiftlang/swift-cmark",
       "state" : {
-        "revision" : "3ccff77b2dc5b96b77db3da0d68d28068593fa53",
-        "version" : "0.5.0"
+        "revision" : "3bc2f3e25df0cecc5dc269f7ccae65d0f386f06a",
+        "version" : "0.4.0"
       }
     },
     {
