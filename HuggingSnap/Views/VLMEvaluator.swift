@@ -41,7 +41,7 @@ struct HuggingSnapModelConfiguration: Codable, Sendable {
 
 // FIXME: this is global because otherwise I have to access with `await` inside the async methods, will fix later
 fileprivate var runtimeConfiguration: HuggingSnapModelConfiguration = HuggingSnapModelConfiguration(
-    model: "HuggingFaceTB/SmolVLM2-500M-Video-Instruct-mlx",
+    model: "https://github.com/robertavram-md/ECGv1.git",
     videoSystemPrompt: "Focus only on describing the key dramatic action or notable event occurring in this video segment. Skip general context or scene-setting details unless they are crucial to understanding the main action.",
     videoUserPrompt: "What is the main action or notable event happening in this segment? Describe it in one brief sentence.",
     photoSystemPrompt: "You are an image understanding model capable of describing the salient features of any image.",

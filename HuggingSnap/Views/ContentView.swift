@@ -165,6 +165,13 @@ struct ContentView: View {
                                 .fontWeight(.medium)
                                 .foregroundStyle(.secondary)
                                 .multilineTextAlignment(.center)
+                                .padding(.bottom, 8)
+                            
+                            Text("This app is not intended for medical use and is not FDA or Health Canada approved.")
+                                .font(.body)
+                                .fontWeight(.medium)
+                                .foregroundStyle(.secondary)
+                                .multilineTextAlignment(.center)
                             //                            .padding(.bottom, 100)
                         }
                         .frame(maxHeight: .infinity, alignment: .center)

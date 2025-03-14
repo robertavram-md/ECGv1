@@ -29,6 +29,42 @@ struct InputView: View {
                             .frame(maxHeight: .infinity, alignment: .top)
                             .focused($promptInFocus)
                         
+                        // Prompt suggestion buttons
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 8) {
+                                Button {
+                                    textFieldText = "What is the diagnosis for this ECG?"
+                                } label: {
+                                    Text("ECG Interpretation")
+                                        .font(.footnote)
+                                        .fontWeight(.medium)
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 6)
+                                        .background(
+                                            Capsule()
+                                                .fill(.quaternary.opacity(0.4))
+                                        )
+                                        .foregroundStyle(.white)
+                                }
+                                
+                                Button {
+                                    textFieldText = "Does the patient have coronary disease?"
+                                } label: {
+                                    Text("Coronary Disease")
+                                        .font(.footnote)
+                                        .fontWeight(.medium)
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 6)
+                                        .background(
+                                            Capsule()
+                                                .fill(.quaternary.opacity(0.4))
+                                        )
+                                        .foregroundStyle(.white)
+                                }
+                            }
+                        }
+                        .padding(.vertical, 6)
+                        
                         HStack {
                             Spacer()
                             Button {
