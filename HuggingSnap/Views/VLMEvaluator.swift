@@ -42,8 +42,8 @@ fileprivate var runtimeConfiguration: SnapECGModelConfiguration = SnapECGModelCo
         maxNewTokens: 512,
         doSample: true
     ),
-    apiEndpoint: APIConfig.huggingFaceAPIEndpoint,
-    apiKey: APIConfig.huggingFaceAPIKey
+    apiEndpoint: "https://q61a3zug772ocqe0.eastus.azure.endpoints.huggingface.cloud",
+    apiKey: "YOUR_API_KEY_HERE" // Replace with your actual Hugging Face API key
 )
 
 @Observable
