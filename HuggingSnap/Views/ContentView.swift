@@ -264,14 +264,13 @@ struct ContentView: View {
         }
         .onAppear { prepareHaptics() }
         .task {
-#if !targetEnvironment(simulator)
+            // Set LLM as loaded immediately since we're using API
             _ = try? await llm.load()
             await MainActor.run {
                 withAnimation {
                     isLLMLoaded = true
                 }
             }
-#endif
         }
         .sheet(isPresented: $showSettings, content: {
             SettingsView()

@@ -1,2 +1,32 @@
 .DS_Store
 xcuserdata
+
+# Ignore API configuration with sensitive keys
+HuggingSnap/APIConfig.swift
+
+# CocoaPods
+Pods/
+
+# Swift Package Manager
+.build/
+Package.resolved
+*.xcodeproj/xcuserdata/
+*.xcworkspace/xcuserdata/
+*.xcodeproj/project.xcworkspace/
+*.xcodeproj/xcshareddata/swiftpm/
+!*.xcodeproj/project.xcworkspace/contents.xcworkspacedata
+
+# Xcode
+build/
+DerivedData/
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+*.ipa
+*.dSYM.zip
+*.dSYM
