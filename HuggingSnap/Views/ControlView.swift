@@ -71,7 +71,7 @@ struct ControlView: View {
                         if case .loadedImage(let uIImage) = loadState {
                             Button {
                                 // ECG Interpretation
-                                llm.customUserInput = ""
+                                llm.customUserInput = "What is the diagnosis for this ECG?"
                                 Task {
                                     // Image is already rotated at capture time
                                     let ciImage = CIImage(image: uIImage)
@@ -102,7 +102,7 @@ struct ControlView: View {
                         Button {
                             // ECG Interpretation using the side button
                             if case .loadedImage(let uIImage) = loadState {
-                                llm.customUserInput = ""
+                                llm.customUserInput = "What is the diagnosis for this ECG?"
                                 Task {
                                     // Image is already rotated at capture time
                                     let ciImage = CIImage(image: uIImage)
@@ -211,7 +211,7 @@ struct ControlView: View {
                         Button {
                             // Coronary disease check
                             if case .loadedImage(let uIImage) = loadState {
-                                llm.customUserInput = "Analyze this ECG for signs of coronary artery disease."
+                                llm.customUserInput = "Does the patient have coronary disease?"
                                 Task {
                                     // Image is already rotated at capture time
                                     let ciImage = CIImage(image: uIImage)

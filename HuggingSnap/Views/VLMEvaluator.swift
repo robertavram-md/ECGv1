@@ -33,10 +33,10 @@ struct SnapECGModelConfiguration: Codable, Sendable {
 
 // Default configuration
 fileprivate var runtimeConfiguration: SnapECGModelConfiguration = SnapECGModelConfiguration(
-    videoSystemPrompt: "You are an ECG interpretation assistant. Analyze ECG patterns for abnormalities.",
-    videoUserPrompt: "Describe the ECG findings and potential diagnoses.",
-    photoSystemPrompt: "You are an ECG interpretation assistant. You analyze ECG images and provide detailed findings including rhythm, intervals, and potential abnormalities.",
-    photoUserPrompt: "Analyze this ECG image. Describe the rhythm, rate, intervals, and any abnormalities you observe.",
+    videoSystemPrompt: "Caption this ECG.",
+    videoUserPrompt: "Describe the ECG findings.",
+    photoSystemPrompt: "Caption this ECG.",
+    photoUserPrompt: "What is the diagnosis for this ECG?",
     generationParameters: SnapECGModelConfiguration.GenerationParameters(
         temperature: 0.7, 
         topP: 0.9,
@@ -166,11 +166,26 @@ class VLMEvaluator {
             request.addValue("Bearer \(runtimeConfiguration.apiKey)", forHTTPHeaderField: "Authorization")
             request.timeoutInterval = 30.0  // 30 second timeout
             
-            // Create the prompt with system and user prompts
-            let fullPrompt = "User: \(userPrompt)<image>\nAssistant:"
+            // Get the appropriate system and user prompts
+            // System prompt is always "Caption this ECG."
+            let systemPrompt = "Caption this ECG."
             
-            // Create the request body with ECG-specific prompt and base64 image
+            // For user prompt, check if we have a custom input
+            let userPromptToUse: String
+            if !customUserInput.isEmpty {
+                // Use the custom input directly
+                userPromptToUse = customUserInput
+            } else {
+                // Default to diagnosis prompt
+                userPromptToUse = "What is the diagnosis for this ECG?"
+            }
+            
+            // Format the full prompt with system prompt first, then user will see image and prompt
+            let fullPrompt = "System: \(systemPrompt)\nUser: \(userPromptToUse)<image>\nAssistant:"
+            
+            // Create the request body with the base64 image
             print("Using direct base64 image for API request (length: \(base64Image.count) chars)")
+            print("Using prompt: \(fullPrompt)")
             let requestBody: [String: Any] = [
                 "inputs": [
                     "text": fullPrompt,
