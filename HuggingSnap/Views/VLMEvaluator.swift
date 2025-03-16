@@ -177,7 +177,7 @@ class VLMEvaluator {
             }
             
             // Format the full prompt with system prompt first, then user will see image and prompt
-            let fullPrompt = "System: \(systemPrompt)\nUser: \(userPromptToUse)<image>\nAssistant:"
+            let fullPrompt = "User: \(systemPrompt)\nUser: <image> \(userPromptToUse)\nAssistant:"
             
             // Create the request body with the base64 image
             print("Using direct base64 image for API request (length: \(base64Image.count) chars)")
