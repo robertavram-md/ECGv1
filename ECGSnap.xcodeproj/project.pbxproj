@@ -13,7 +13,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		F117BC392D5BE59F008074F1 /* HuggingSnap.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HuggingSnap.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		F117BC392D5BE59F008074F1 /* ECGSnap.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ECGSnap.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -47,7 +47,7 @@
 		F117BC3A2D5BE59F008074F1 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				F117BC392D5BE59F008074F1 /* HuggingSnap.app */,
+				F117BC392D5BE59F008074F1 /* ECGSnap.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -55,9 +55,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		F117BC382D5BE59F008074F1 /* HuggingSnap */ = {
+		F117BC382D5BE59F008074F1 /* ECGSnap */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = F117BC472D5BE5A0008074F1 /* Build configuration list for PBXNativeTarget "HuggingSnap" */;
+			buildConfigurationList = F117BC472D5BE5A0008074F1 /* Build configuration list for PBXNativeTarget "ECGSnap" */;
 			buildPhases = (
 				F117BC352D5BE59F008074F1 /* Sources */,
 				F117BC362D5BE59F008074F1 /* Frameworks */,
@@ -68,14 +68,14 @@
 			fileSystemSynchronizedGroups = (
 				F117BC3B2D5BE59F008074F1 /* HuggingSnap */,
 			);
-			name = HuggingSnap;
+			name = ECGSnap;
 			packageProductDependencies = (
 				F1C679AB2D600DB2004565BC /* MLXLMCommon */,
 				F1C679AD2D600DB2004565BC /* MLXVLM */,
 				F1D07C8F2D6433F8006A250A /* MarkdownUI */,
 			);
 			productName = HuggingSnap;
-			productReference = F117BC392D5BE59F008074F1 /* HuggingSnap.app */;
+			productReference = F117BC392D5BE59F008074F1 /* ECGSnap.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -93,7 +93,7 @@
 					};
 				};
 			};
-			buildConfigurationList = F117BC342D5BE59F008074F1 /* Build configuration list for PBXProject "HuggingSnap" */;
+			buildConfigurationList = F117BC342D5BE59F008074F1 /* Build configuration list for PBXProject "ECGSnap" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -111,7 +111,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				F117BC382D5BE59F008074F1 /* HuggingSnap */,
+				F117BC382D5BE59F008074F1 /* ECGSnap */,
 			);
 		};
 /* End PBXProject section */
@@ -133,7 +133,7 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
-		F117BC452D5BE5A0008074F1 /* Debug configuration for PBXProject "HuggingSnap" */ = {
+		F117BC452D5BE5A0008074F1 /* Debug configuration for PBXProject "ECGSnap" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -197,7 +197,7 @@
 			};
 			name = Debug;
 		};
-		F117BC462D5BE5A0008074F1 /* Release configuration for PBXProject "HuggingSnap" */ = {
+		F117BC462D5BE5A0008074F1 /* Release configuration for PBXProject "ECGSnap" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -254,7 +254,7 @@
 			};
 			name = Release;
 		};
-		F117BC482D5BE5A0008074F1 /* Debug configuration for PBXNativeTarget "HuggingSnap" */ = {
+		F117BC482D5BE5A0008074F1 /* Debug configuration for PBXNativeTarget "ECGSnap" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -296,7 +296,7 @@
 			};
 			name = Debug;
 		};
-		F117BC492D5BE5A0008074F1 /* Release configuration for PBXNativeTarget "HuggingSnap" */ = {
+		F117BC492D5BE5A0008074F1 /* Release configuration for PBXNativeTarget "ECGSnap" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -341,19 +341,19 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		F117BC342D5BE59F008074F1 /* Build configuration list for PBXProject "HuggingSnap" */ = {
+		F117BC342D5BE59F008074F1 /* Build configuration list for PBXProject "ECGSnap" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				F117BC452D5BE5A0008074F1 /* Debug configuration for PBXProject "HuggingSnap" */,
-				F117BC462D5BE5A0008074F1 /* Release configuration for PBXProject "HuggingSnap" */,
+				F117BC452D5BE5A0008074F1 /* Debug configuration for PBXProject "ECGSnap" */,
+				F117BC462D5BE5A0008074F1 /* Release configuration for PBXProject "ECGSnap" */,
 			);
 			defaultConfigurationName = Release;
 		};
-		F117BC472D5BE5A0008074F1 /* Build configuration list for PBXNativeTarget "HuggingSnap" */ = {
+		F117BC472D5BE5A0008074F1 /* Build configuration list for PBXNativeTarget "ECGSnap" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				F117BC482D5BE5A0008074F1 /* Debug configuration for PBXNativeTarget "HuggingSnap" */,
-				F117BC492D5BE5A0008074F1 /* Release configuration for PBXNativeTarget "HuggingSnap" */,
+				F117BC482D5BE5A0008074F1 /* Debug configuration for PBXNativeTarget "ECGSnap" */,
+				F117BC492D5BE5A0008074F1 /* Release configuration for PBXNativeTarget "ECGSnap" */,
 			);
 			defaultConfigurationName = Release;
 		};

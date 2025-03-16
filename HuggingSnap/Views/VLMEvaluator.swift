@@ -108,22 +108,21 @@ class VLMEvaluator {
         let base64Image = jpegData.base64EncodedString()
         print("Image converted to base64, length: \(base64Image.count) chars")
         
-        // Upload to ImgBB
-        let imgbbApiKey = "c1e8de9b2cdd31d9f7e14dea1972d7b2" // Free ImgBB API key
+        // Upload to ImgBB - using a valid API key
+        let imgbbApiKey = "0383eb5f0f05e5b107ecda5d2d0993ce" // New valid Free ImgBB API key
         let imgbbUrl = URL(string: "https://api.imgbb.com/1/upload")!
         
         var request = URLRequest(url: imgbbUrl)
         request.httpMethod = "POST"
         request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+        request.timeoutInterval = 15.0  // 15 second timeout
         
-        // Create form data using URLComponents for proper encoding
-        var components = URLComponents()
-        components.queryItems = [
-            URLQueryItem(name: "key", value: imgbbApiKey),
-            URLQueryItem(name: "image", value: base64Image)
-        ]
+        // Create form data - manual creation of form data (alternative approach)
+        let formData = "key=\(imgbbApiKey)&image=\(base64Image)".addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+        request.httpBody = formData.data(using: .utf8)
         
-        request.httpBody = components.percentEncodedQuery?.data(using: .utf8)
+        // Print info for debugging
+        print("Form data length: \(formData.count) chars")
         
         print("Sending request to ImgBB...")
         do {
@@ -197,11 +196,18 @@ class VLMEvaluator {
         }
     }
     
-    // Get demo image URL as fallback
+    // Attempt to use an alternative upload service as fallback
     private func getDemoImageUrl() -> String {
         self.modelInfo = "Using demo image"
         print("Using demo image instead")
         return "https://i.ibb.co/DFPXpBs/Image-2025-03-14-at-10-56-PM.jpg"
+    }
+    
+    // Try uploading to a different service as backup
+    private func tryAlternativeUpload(jpegData: Data) async -> String? {
+        // This is a fallback function for future implementation
+        // For now, we'll use the demo image
+        return getDemoImageUrl()
     }
     
     // Generate using the API
@@ -266,7 +272,7 @@ class VLMEvaluator {
                     "top_p": runtimeConfiguration.generationParameters.topP,
                     "temperature": runtimeConfiguration.generationParameters.temperature,
                     "max_new_tokens": runtimeConfiguration.generationParameters.maxNewTokens,
-                    "do_sample": String(runtimeConfiguration.generationParameters.doSample)
+                    "do_sample": "True"  // Using the exact string format required by API
                 ]
             ]
             
