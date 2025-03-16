@@ -25,13 +25,18 @@ You'll need to change the bundle identifier and developer team to run the app on
 
 ## API Configuration
 
-The app uses a Hugging Face API for ECG image analysis. To use the app:
+The app uses a Hugging Face API for ECG image analysis. The default installation includes a pre-configured API key, so most users won't need to change anything.
 
-1. You'll need a Hugging Face API endpoint and key
-2. Create the file `APIConfig.swift` based on the template
-3. Add your API endpoint and key to the configuration file
+If you need to use your own API key:
 
-The APIConfig.swift file is excluded from Git to prevent credentials from being committed.
+1. The API key is stored in `APIConfig.swift` (excluded from git)
+2. This file is pre-configured with the default credentials
+3. If you wish to use your own key, simply modify the `huggingFaceAPIKey` value
+
+For developers:
+- The actual API credentials are in `APIConfig.swift` (not tracked in git)
+- A template version (`APIConfig.template.swift`) is included for reference
+- The app validates API configuration at startup and provides warnings if not properly set up
 
 ## Medical Disclaimer
 

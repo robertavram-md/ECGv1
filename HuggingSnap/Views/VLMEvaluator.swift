@@ -8,6 +8,7 @@
 import SwiftUI
 import Foundation
 import UIKit // For UIImage
+// We don't need to import APIConfig since it's in the same module
 
 // Runtime configuration for API access
 
@@ -42,8 +43,8 @@ fileprivate var runtimeConfiguration: SnapECGModelConfiguration = SnapECGModelCo
         maxNewTokens: 512,
         doSample: true
     ),
-    apiEndpoint: "https://q61a3zug772ocqe0.eastus.azure.endpoints.huggingface.cloud",
-    apiKey: "YOUR_API_KEY_HERE" // Replace with your actual Hugging Face API key
+    apiEndpoint: APIConfig.huggingFaceAPIEndpoint,
+    apiKey: APIConfig.huggingFaceAPIKey
 )
 
 @Observable
@@ -56,9 +57,15 @@ class VLMEvaluator {
     var modelInfo = "Ready to use"
     var stat = ""
     
-    // Simple load function that just sets the model as ready
+    // Load function that validates the API configuration
     func load() async throws -> Bool {
-        self.modelInfo = "API Ready"
+        // Check if API key is properly configured
+        if APIConfig.isConfigured {
+            self.modelInfo = "API Ready"
+        } else {
+            self.modelInfo = "API Key Not Configured"
+            print("WARNING: API Key not configured. Please set a valid API key in APIConfig.swift")
+        }
         return true
     }
     
@@ -89,6 +96,12 @@ class VLMEvaluator {
     // Generate using the API
     func generate(image: CIImage?, videoURL: URL?) async {
         guard !running else { return }
+        
+        // Check if API key is configured
+        guard APIConfig.isConfigured else {
+            self.output = "ERROR: API Key not configured. Please set your API key in APIConfig.swift"
+            return
+        }
         
         running = true
         self.output = ""
