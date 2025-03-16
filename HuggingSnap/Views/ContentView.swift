@@ -57,16 +57,18 @@ struct ContentView: View {
             case .loadedMovie(let movie):
                 Group {
                     ZStack {
-                        Color.clear
-                            .edgesIgnoringSafeArea(.vertical)
-                    }.background {
+                        // Black background for consistency with ECG display
+                        Color.black.edgesIgnoringSafeArea(.all)
+                        
+                        // Video player with improved display
                         VideoPlayer(player: player)
-                            .aspectRatio(contentMode: .fill)
-                            .edgesIgnoringSafeArea(.vertical)
+                            .aspectRatio(contentMode: .fit)  // Use fit to avoid cropping
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .padding(.horizontal, 16)  // Horizontal padding
+                            .padding(.vertical, 30)    // Vertical padding to avoid controls
                             .onAppear() {
                                 setupPlayer(with: movie.url)
                             }
-                        
                     }
                 }
                 .ignoresSafeArea(.keyboard)
@@ -76,18 +78,22 @@ struct ContentView: View {
                 //                // Little hacky but needed otherwise buttons overflow on edges
                 //                // Do not be tempted to remove
                 Group {
+                    // Improved ECG image display
                     ZStack {
-                        Color.clear.edgesIgnoringSafeArea(.vertical)
-                    }.background {
-                        Image(uiImage: image.ensureHorizontalOrientation())
+                        // Black background for better ECG visibility
+                        Color.black.edgesIgnoringSafeArea(.all)
+                        
+                        // ECG image with improved display - enhanced for readability
+                        Image(uiImage: image.ensureHorizontalOrientation().enhanceForECGDisplay())
                             .resizable()
-                            .edgesIgnoringSafeArea(.vertical)
-                            .aspectRatio(contentMode: .fit) // Use .fit to ensure we see the whole ECG
-                            .edgesIgnoringSafeArea(.vertical)
-                            .padding(.horizontal, 8) // Add padding to avoid edge clipping
-                        //
+                            .scaledToFit()  // Scale to fit without cropping
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .padding(.horizontal, 20)  // More padding to avoid edge clipping
+                            .padding(.vertical, 40)    // Increased vertical padding for better visibility
+                            .background(Color.black)   // Black background helps with contrast
                     }
-                }.ignoresSafeArea(.keyboard)
+                }
+                .ignoresSafeArea(.keyboard)
                 //
             }
         }
@@ -347,4 +353,5 @@ struct ContentView: View {
 #Preview {
     ContentView()
         .preferredColorScheme(.dark)
+        .environment(VLMEvaluator())
 }
