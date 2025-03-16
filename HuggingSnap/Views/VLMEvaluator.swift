@@ -87,65 +87,121 @@ class VLMEvaluator {
     // Upload image to ImgBB and get URL for API
     private func uploadImageAndGetURL(from image: CIImage) async -> String? {
         self.modelInfo = "Uploading image..."
+        print("Starting image upload process")
         
-        guard let base64Image = ciImageToBase64(image: image) else {
-            self.modelInfo = "Failed to convert image"
+        // Convert CIImage to UIImage for upload
+        let context = CIContext()
+        guard let cgImage = context.createCGImage(image, from: image.extent) else {
+            self.modelInfo = "Failed to create CGImage"
+            print("Failed to create CGImage")
             return nil
         }
         
+        let uiImage = UIImage(cgImage: cgImage)
+        guard let jpegData = uiImage.jpegData(compressionQuality: 0.85) else {
+            self.modelInfo = "Failed to create JPEG data"
+            print("Failed to create JPEG data")
+            return nil
+        }
+        
+        // Create base64 string
+        let base64Image = jpegData.base64EncodedString()
+        print("Image converted to base64, length: \(base64Image.count) chars")
+        
         // Upload to ImgBB
-        let imgbbApiKey = "c1e8de9b2cdd31d9f7e14dea1972d7b2" // Free ImgBB API key for anonymous uploads
-        let imgbbUrl = URL(string: "https://api.imgbb.com/1/upload?key=\(imgbbApiKey)")!
+        let imgbbApiKey = "c1e8de9b2cdd31d9f7e14dea1972d7b2" // Free ImgBB API key
+        let imgbbUrl = URL(string: "https://api.imgbb.com/1/upload")!
         
         var request = URLRequest(url: imgbbUrl)
         request.httpMethod = "POST"
+        request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
         
-        // Create form data
-        let boundary = UUID().uuidString
-        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        // Create form data using URLComponents for proper encoding
+        var components = URLComponents()
+        components.queryItems = [
+            URLQueryItem(name: "key", value: imgbbApiKey),
+            URLQueryItem(name: "image", value: base64Image)
+        ]
         
-        var body = Data()
+        request.httpBody = components.percentEncodedQuery?.data(using: .utf8)
         
-        // Add the base64 image data
-        body.append("--\(boundary)\r\n".data(using: .utf8)!)
-        body.append("Content-Disposition: form-data; name=\"image\"\r\n\r\n".data(using: .utf8)!)
-        body.append("\(base64Image)\r\n".data(using: .utf8)!)
-        body.append("--\(boundary)--\r\n".data(using: .utf8)!)
-        
-        request.httpBody = body
-        
+        print("Sending request to ImgBB...")
         do {
             let (data, response) = try await URLSession.shared.data(for: request)
             
-            guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
-                self.modelInfo = "Upload failed: HTTP \((response as? HTTPURLResponse)?.statusCode ?? 0)"
-                print("Upload failed: \(response)")
-                return "https://i.ibb.co/DFPXpBs/Image-2025-03-14-at-10-56-PM.jpg" // Fallback to demo image
+            guard let httpResponse = response as? HTTPURLResponse else {
+                self.modelInfo = "Upload failed: Not an HTTP response"
+                print("Upload failed: Not an HTTP response")
+                return getDemoImageUrl()
+            }
+            
+            print("ImgBB HTTP status code: \(httpResponse.statusCode)")
+            
+            if httpResponse.statusCode != 200 {
+                self.modelInfo = "Upload failed: HTTP \(httpResponse.statusCode)"
+                
+                // Try to get error message
+                if let responseString = String(data: data, encoding: .utf8) {
+                    print("ImgBB error response: \(responseString)")
+                }
+                
+                return getDemoImageUrl()
             }
             
             // Parse the JSON response from ImgBB
-            if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-               let data = json["data"] as? [String: Any],
-               let url = data["url"] as? String {
-                self.modelInfo = "Image uploaded"
+            guard let jsonObject = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] else {
+                self.modelInfo = "Failed to parse JSON response"
+                print("Failed to parse JSON response")
+                return getDemoImageUrl()
+            }
+            
+            // Debug the entire response
+            print("ImgBB JSON response: \(jsonObject)")
+            
+            // Check if upload was successful
+            guard let success = jsonObject["success"] as? Bool, success == true else {
+                self.modelInfo = "Upload not successful"
+                print("Upload not successful according to JSON response")
+                return getDemoImageUrl()
+            }
+            
+            // Extract data section
+            guard let dataDict = jsonObject["data"] as? [String: Any] else {
+                self.modelInfo = "No data in response"
+                print("No data dictionary in response")
+                return getDemoImageUrl()
+            }
+            
+            // Try different possible URL fields
+            if let displayUrl = dataDict["display_url"] as? String {
+                print("Image uploaded successfully: \(displayUrl)")
+                self.modelInfo = "Image uploaded ✓"
+                return displayUrl
+            } else if let url = dataDict["url"] as? String {
                 print("Image uploaded successfully: \(url)")
+                self.modelInfo = "Image uploaded ✓"
+                return url
+            } else if let imageUrl = dataDict["image"] as? [String: Any], let url = imageUrl["url"] as? String {
+                print("Image uploaded successfully: \(url)")
+                self.modelInfo = "Image uploaded ✓"
                 return url
             } else {
-                print("Couldn't parse ImgBB response")
-                self.modelInfo = "Failed to parse upload response"
-                
-                // For debugging
-                if let responseString = String(data: data, encoding: .utf8) {
-                    print("ImgBB response: \(responseString)")
-                }
-                
-                return "https://i.ibb.co/DFPXpBs/Image-2025-03-14-at-10-56-PM.jpg" // Fallback to demo image
+                self.modelInfo = "No URL found in response"
+                print("No URL found in ImgBB response")
+                return getDemoImageUrl()
             }
         } catch {
-            print("Image upload error: \(error)")
             self.modelInfo = "Upload error: \(error.localizedDescription)"
-            return "https://i.ibb.co/DFPXpBs/Image-2025-03-14-at-10-56-PM.jpg" // Fallback to demo image
+            print("Image upload error: \(error)")
+            return getDemoImageUrl()
         }
+    }
+    
+    // Get demo image URL as fallback
+    private func getDemoImageUrl() -> String {
+        self.modelInfo = "Using demo image"
+        print("Using demo image instead")
+        return "https://i.ibb.co/DFPXpBs/Image-2025-03-14-at-10-56-PM.jpg"
     }
     
     // Generate using the API
@@ -199,17 +255,18 @@ class VLMEvaluator {
             // Create the prompt with system and user prompts
             let fullPrompt = "User: \(userPrompt)<image>\nAssistant:"
             
-            // Create the request body with ECG-specific prompt
+            // Create the request body with ECG-specific prompt and uploaded image URL
+            print("Using image URL for API request: \(imageUrl)")
             let requestBody: [String: Any] = [
                 "inputs": [
                     "text": fullPrompt,
                     "images": [imageUrl]
                 ],
                 "parameters": [
-                    "top_p": 0.9,
-                    "temperature": 0.7,
-                    "max_new_tokens": 512,
-                    "do_sample": "True"
+                    "top_p": runtimeConfiguration.generationParameters.topP,
+                    "temperature": runtimeConfiguration.generationParameters.temperature,
+                    "max_new_tokens": runtimeConfiguration.generationParameters.maxNewTokens,
+                    "do_sample": String(runtimeConfiguration.generationParameters.doSample)
                 ]
             ]
             
