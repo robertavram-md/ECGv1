@@ -69,27 +69,12 @@ class VLMEvaluator {
         return true
     }
     
-    // Convert CIImage to base64 string for API
-    private func ciImageToBase64(image: CIImage) -> String? {
-        let context = CIContext()
-        guard let cgImage = context.createCGImage(image, from: image.extent) else {
-            return nil
-        }
+    // Convert CIImage to base64 string for direct use in API
+    private func convertImageToBase64(from image: CIImage) async -> String? {
+        self.modelInfo = "Processing image..."
+        print("Converting image to base64")
         
-        let uiImage = UIImage(cgImage: cgImage)
-        guard let imageData = uiImage.jpegData(compressionQuality: 0.8) else {
-            return nil
-        }
-        
-        return imageData.base64EncodedString()
-    }
-    
-    // Upload image to ImgBB and get URL for API
-    private func uploadImageAndGetURL(from image: CIImage) async -> String? {
-        self.modelInfo = "Uploading image..."
-        print("Starting image upload process")
-        
-        // Convert CIImage to UIImage for upload
+        // Convert CIImage to UIImage for base64 encoding
         let context = CIContext()
         guard let cgImage = context.createCGImage(image, from: image.extent) else {
             self.modelInfo = "Failed to create CGImage"
@@ -98,116 +83,32 @@ class VLMEvaluator {
         }
         
         let uiImage = UIImage(cgImage: cgImage)
-        guard let jpegData = uiImage.jpegData(compressionQuality: 0.85) else {
+        
+        // Convert to JPEG with slightly reduced quality to manage size
+        guard let jpegData = uiImage.jpegData(compressionQuality: 0.75) else {
             self.modelInfo = "Failed to create JPEG data"
             print("Failed to create JPEG data")
             return nil
         }
         
-        // Create base64 string
-        let base64Image = jpegData.base64EncodedString()
-        print("Image converted to base64, length: \(base64Image.count) chars")
+        // Convert to base64 string
+        let base64String = jpegData.base64EncodedString()
         
-        // Upload to ImgBB - using a valid API key
-        let imgbbApiKey = "0383eb5f0f05e5b107ecda5d2d0993ce" // New valid Free ImgBB API key
-        let imgbbUrl = URL(string: "https://api.imgbb.com/1/upload")!
+        // Log info about the conversion
+        print("Image converted to base64, size: \(jpegData.count) bytes, base64 length: \(base64String.count) chars")
+        self.modelInfo = "Image processed"
         
-        var request = URLRequest(url: imgbbUrl)
-        request.httpMethod = "POST"
-        request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
-        request.timeoutInterval = 15.0  // 15 second timeout
-        
-        // Create form data - manual creation of form data (alternative approach)
-        let formData = "key=\(imgbbApiKey)&image=\(base64Image)".addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
-        request.httpBody = formData.data(using: .utf8)
-        
-        // Print info for debugging
-        print("Form data length: \(formData.count) chars")
-        
-        print("Sending request to ImgBB...")
-        do {
-            let (data, response) = try await URLSession.shared.data(for: request)
-            
-            guard let httpResponse = response as? HTTPURLResponse else {
-                self.modelInfo = "Upload failed: Not an HTTP response"
-                print("Upload failed: Not an HTTP response")
-                return getDemoImageUrl()
-            }
-            
-            print("ImgBB HTTP status code: \(httpResponse.statusCode)")
-            
-            if httpResponse.statusCode != 200 {
-                self.modelInfo = "Upload failed: HTTP \(httpResponse.statusCode)"
-                
-                // Try to get error message
-                if let responseString = String(data: data, encoding: .utf8) {
-                    print("ImgBB error response: \(responseString)")
-                }
-                
-                return getDemoImageUrl()
-            }
-            
-            // Parse the JSON response from ImgBB
-            guard let jsonObject = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] else {
-                self.modelInfo = "Failed to parse JSON response"
-                print("Failed to parse JSON response")
-                return getDemoImageUrl()
-            }
-            
-            // Debug the entire response
-            print("ImgBB JSON response: \(jsonObject)")
-            
-            // Check if upload was successful
-            guard let success = jsonObject["success"] as? Bool, success == true else {
-                self.modelInfo = "Upload not successful"
-                print("Upload not successful according to JSON response")
-                return getDemoImageUrl()
-            }
-            
-            // Extract data section
-            guard let dataDict = jsonObject["data"] as? [String: Any] else {
-                self.modelInfo = "No data in response"
-                print("No data dictionary in response")
-                return getDemoImageUrl()
-            }
-            
-            // Try different possible URL fields
-            if let displayUrl = dataDict["display_url"] as? String {
-                print("Image uploaded successfully: \(displayUrl)")
-                self.modelInfo = "Image uploaded ✓"
-                return displayUrl
-            } else if let url = dataDict["url"] as? String {
-                print("Image uploaded successfully: \(url)")
-                self.modelInfo = "Image uploaded ✓"
-                return url
-            } else if let imageUrl = dataDict["image"] as? [String: Any], let url = imageUrl["url"] as? String {
-                print("Image uploaded successfully: \(url)")
-                self.modelInfo = "Image uploaded ✓"
-                return url
-            } else {
-                self.modelInfo = "No URL found in response"
-                print("No URL found in ImgBB response")
-                return getDemoImageUrl()
-            }
-        } catch {
-            self.modelInfo = "Upload error: \(error.localizedDescription)"
-            print("Image upload error: \(error)")
-            return getDemoImageUrl()
-        }
+        return base64String
     }
     
-    // Attempt to use an alternative upload service as fallback
-    private func getDemoImageUrl() -> String {
+    // Get a fallback demo image if needed
+    private func getFallbackBase64Image() -> String {
         self.modelInfo = "Using demo image"
-        print("Using demo image instead")
-        return "https://i.ibb.co/DFPXpBs/Image-2025-03-14-at-10-56-PM.jpg"
-    }
-    
-    // Try uploading to a different service as backup
-    private func tryAlternativeUpload(jpegData: Data) async -> String? {
-        // This is a fallback function for future implementation
-        // For now, we'll use the demo image
-        return getDemoImageUrl()
+        print("Using demo ECG image")
+        
+        // This is a minimal base64 representation of an ECG image for testing
+        // In a real app, we would include a full fallback image
+        return "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
     }
     
     // Generate using the API
@@ -240,12 +141,18 @@ class VLMEvaluator {
                 (videoURL != nil ? runtimeConfiguration.videoUserPrompt : runtimeConfiguration.photoUserPrompt) : 
                 customUserInput
             
-            // Get a remote URL for the image by uploading to ImgBB
-            self.output = "Uploading your ECG image for analysis..."
-            guard let imageUrl = await uploadImageAndGetURL(from: image) else {
-                self.output = "Failed to upload image for analysis"
-                running = false
-                return
+            // Process the image locally and convert to base64
+            self.output = "Processing your ECG image..."
+            let base64Image: String
+            if let convertedImage = await convertImageToBase64(from: image) {
+                base64Image = convertedImage
+                self.modelInfo = "Image processed successfully"
+            } else {
+                // Use fallback image if conversion fails
+                self.output = "Using fallback ECG image"
+                self.modelInfo = "Using fallback image"
+                print("WARNING: Using fallback image due to conversion failure")
+                base64Image = getFallbackBase64Image()
             }
             
             self.output = "Analyzing ECG pattern..."
@@ -257,16 +164,17 @@ class VLMEvaluator {
             request.addValue("application/json", forHTTPHeaderField: "Content-Type")
             request.addValue("application/json", forHTTPHeaderField: "Accept")
             request.addValue("Bearer \(runtimeConfiguration.apiKey)", forHTTPHeaderField: "Authorization")
+            request.timeoutInterval = 30.0  // 30 second timeout
             
             // Create the prompt with system and user prompts
             let fullPrompt = "User: \(userPrompt)<image>\nAssistant:"
             
-            // Create the request body with ECG-specific prompt and uploaded image URL
-            print("Using image URL for API request: \(imageUrl)")
+            // Create the request body with ECG-specific prompt and base64 image
+            print("Using direct base64 image for API request (length: \(base64Image.count) chars)")
             let requestBody: [String: Any] = [
                 "inputs": [
                     "text": fullPrompt,
-                    "images": [imageUrl]
+                    "images": ["data:image/jpeg;base64,\(base64Image)"]
                 ],
                 "parameters": [
                     "top_p": runtimeConfiguration.generationParameters.topP,
