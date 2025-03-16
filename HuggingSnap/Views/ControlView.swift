@@ -1,6 +1,6 @@
 //
 //  ControlView.swift
-//  HuggingSnap
+//  SnapECG
 //
 //  Created by Cyril Zakka on 2/18/25.
 //
@@ -70,7 +70,7 @@ struct ControlView: View {
                     HStack(spacing: 20) {
                         if case .loadedImage(let uIImage) = loadState {
                             Button {
-                                // Image description
+                                // ECG Interpretation
                                 llm.customUserInput = ""
                                 Task {
                                     let ciImage = CIImage(image: uIImage)
@@ -78,7 +78,7 @@ struct ControlView: View {
                                 }
                                 
                             } label: {
-                                Label("Describe", systemImage: "text.quote")
+                                Label("ECG Interpretation", systemImage: "waveform.path.ecg")
                                     .foregroundStyle(.white)
                                     .fontWeight(.semibold)
                                     .font(.footnote)
@@ -91,48 +91,35 @@ struct ControlView: View {
                             }
                             .transition(.blurReplace.combined(with: .scale))
                         }
-                        
-                        if case .loadedMovie(let video) = loadState {
-                            Button {
-                                llm.customUserInput = ""
-                                Task {
-                                    await llm.generate(image: nil, videoURL: video.url)
-                                }
-                            } label: {
-                                Label("Summarize", systemImage: "text.append")
-                                    .foregroundStyle(.white)
-                                    .fontWeight(.semibold)
-                                    .font(.footnote)
-                                    .padding(.vertical, 7)
-                                    .padding(.horizontal, 12)
-                                    .background {
-                                        Capsule()
-                                            .fill(.ultraThickMaterial)
-                                    }
-                            }
-                        }
                     }
                     .frame(maxWidth: .infinity, alignment: .center)
                 }
                 
+                // Bottom control buttons: ECG interpretation, capture/clear, coronary check
                 HStack {
                     if isCaptured {
                         Button {
-                            isAudioMode = false
-                            showInputView = true
+                            // ECG Interpretation using the side button
+                            if case .loadedImage(let uIImage) = loadState {
+                                llm.customUserInput = ""
+                                Task {
+                                    let ciImage = CIImage(image: uIImage)
+                                    await llm.generate(image: ciImage ?? CIImage(), videoURL: nil)
+                                }
+                            }
                         } label: {
                             ZStack {
                                 Circle()
                                     .fill(.regularMaterial)
                                     .frame(width: 50, height: 50)
-                                Image(systemName: "text.bubble")
+                                Image(systemName: "waveform.path.ecg")
                                     .foregroundStyle(.white)
                                     .fontWeight(.bold)
                             }
                         }
                     } else {
                         PhotosPicker(selection: $selectedItem,
-                                     matching: .any(of: [.images, .videos])) {
+                                     matching: .images) {
                             ZStack {
                                 Circle()
                                     .fill(.regularMaterial)
@@ -191,44 +178,14 @@ struct ControlView: View {
                                     .transition(.blurReplace)
                                     .contentShape(.rect)
                             } else {
-                                RoundedRectangle(cornerRadius: scaleDown ? 24:100)
-                                    .fill(scaleDown ? .red:.white)
+                                Circle()
+                                    .fill(.white)
                                     .frame(width: 70, height: 70)
                                     .transition(.blurReplace)
-                                    .scaleEffect(scaleDown ? 0.65 : 1)
                             }
                         }
                         .frame(width: 70, height: 70)
                         .contentShape(.rect)
-                        .gesture(
-                            DragGesture(minimumDistance: 0)
-                                .onChanged { _ in
-                                    if !model.isRecording {
-                                        withAnimation {
-                                            scaleDown = true
-                                        }
-#if targetEnvironment(simulator)
-#else
-                                        if !model.isRecording {
-                                            model.toggleRecording()
-                                        }
-#endif
-                                    }
-                                }
-                                .onEnded { _ in
-                                    withAnimation(.smooth(duration: 0.1)) {
-                                        scaleDown = false
-                                    }
-                                    if !isCaptured {
-#if targetEnvironment(simulator)
-#else
-                                        if model.isRecording {
-                                            model.toggleRecording()
-                                        }
-#endif
-                                    }
-                                }
-                        )
                         .highPriorityGesture(
                             TapGesture()
                                 .onEnded {
@@ -250,15 +207,20 @@ struct ControlView: View {
                     
                     if isCaptured {
                         Button {
-                            isAudioMode = true
-                            showInputView = true
-                            
+                            // Coronary disease check
+                            if case .loadedImage(let uIImage) = loadState {
+                                llm.customUserInput = "Analyze this ECG for signs of coronary artery disease."
+                                Task {
+                                    let ciImage = CIImage(image: uIImage)
+                                    await llm.generate(image: ciImage ?? CIImage(), videoURL: nil)
+                                }
+                            }
                         } label: {
                             ZStack {
                                 Circle()
                                     .fill(.regularMaterial)
                                     .frame(width: 50, height: 50)
-                                Image(systemName: "mic")
+                                Image(systemName: "heart")
                                     .foregroundStyle(.white)
                                     .fontWeight(.bold)
                             }
@@ -279,7 +241,6 @@ struct ControlView: View {
                                     .fontWeight(.bold)
                             }
                         }
-                        .disabled(isCaptured)
                     }
                     
                     
