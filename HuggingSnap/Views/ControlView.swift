@@ -73,7 +73,9 @@ struct ControlView: View {
                                 // ECG Interpretation
                                 llm.customUserInput = ""
                                 Task {
-                                    let ciImage = CIImage(image: uIImage)
+                                    // Ensure the image is in horizontal orientation
+                                    let horizontalImage = uIImage.ensureHorizontalOrientation()
+                                    let ciImage = CIImage(image: horizontalImage)
                                     await llm.generate(image: ciImage ?? CIImage(), videoURL: nil)
                                 }
                                 
@@ -103,7 +105,9 @@ struct ControlView: View {
                             if case .loadedImage(let uIImage) = loadState {
                                 llm.customUserInput = ""
                                 Task {
-                                    let ciImage = CIImage(image: uIImage)
+                                    // Ensure the image is in horizontal orientation (width > height)
+                                    let horizontalImage = uIImage.ensureHorizontalOrientation()
+                                    let ciImage = CIImage(image: horizontalImage)
                                     await llm.generate(image: ciImage ?? CIImage(), videoURL: nil)
                                 }
                             }
@@ -211,7 +215,9 @@ struct ControlView: View {
                             if case .loadedImage(let uIImage) = loadState {
                                 llm.customUserInput = "Analyze this ECG for signs of coronary artery disease."
                                 Task {
-                                    let ciImage = CIImage(image: uIImage)
+                                    // Ensure the image is in horizontal orientation
+                                    let horizontalImage = uIImage.ensureHorizontalOrientation()
+                                    let ciImage = CIImage(image: horizontalImage)
                                     await llm.generate(image: ciImage ?? CIImage(), videoURL: nil)
                                 }
                             }

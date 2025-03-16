@@ -79,11 +79,12 @@ struct ContentView: View {
                     ZStack {
                         Color.clear.edgesIgnoringSafeArea(.vertical)
                     }.background {
-                        Image(uiImage: image)
+                        Image(uiImage: image.ensureHorizontalOrientation())
                             .resizable()
                             .edgesIgnoringSafeArea(.vertical)
-                            .aspectRatio(contentMode: .fill)
+                            .aspectRatio(contentMode: .fit) // Use .fit to ensure we see the whole ECG
                             .edgesIgnoringSafeArea(.vertical)
+                            .padding(.horizontal, 8) // Add padding to avoid edge clipping
                         //
                     }
                 }.ignoresSafeArea(.keyboard)
@@ -211,7 +212,9 @@ struct ContentView: View {
                     model.toggleStreaming()
                 }
                 if let uiImage = UIImage(data: photoData) {
-                    loadState = .loadedImage(uiImage)
+                    // Ensure horizontal orientation for ECG images when captured
+                    let horizontalImage = uiImage.ensureHorizontalOrientation()
+                    loadState = .loadedImage(horizontalImage)
                 }
             }
         }
@@ -250,7 +253,9 @@ struct ContentView: View {
                         } else if let image = try await selectedItem?.loadTransferable(type: Data.self) {
                             // Image
                             if let uiImage = UIImage(data: image) {
-                                loadState = .loadedImage(uiImage)
+                                // Ensure ECG image is in horizontal orientation
+                                let horizontalImage = uiImage.ensureHorizontalOrientation()
+                                loadState = .loadedImage(horizontalImage)
                             }
                             isCaptured = true
                         }
