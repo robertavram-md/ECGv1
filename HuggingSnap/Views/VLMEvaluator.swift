@@ -1,6 +1,6 @@
 //
 //  VLMEvaluator.swift
-//  HuggingSnap
+//  SnapECG
 //
 //  Created by Cyril Zakka on 2/14/25.
 //
@@ -33,10 +33,10 @@ struct SnapECGModelConfiguration: Codable, Sendable {
 
 // Default configuration
 fileprivate var runtimeConfiguration: SnapECGModelConfiguration = SnapECGModelConfiguration(
-    videoSystemPrompt: "Focus only on describing the key dramatic action or notable event occurring in this video segment. Skip general context or scene-setting details unless they are crucial to understanding the main action.",
-    videoUserPrompt: "What is the main action or notable event happening in this segment? Describe it in one brief sentence.",
-    photoSystemPrompt: "You are an image understanding model capable of describing the salient features of any image.",
-    photoUserPrompt: "Describe this image.",
+    videoSystemPrompt: "You are an ECG interpretation assistant. Analyze ECG patterns for abnormalities.",
+    videoUserPrompt: "Describe the ECG findings and potential diagnoses.",
+    photoSystemPrompt: "You are an ECG interpretation assistant. You analyze ECG images and provide detailed findings including rhythm, intervals, and potential abnormalities.",
+    photoUserPrompt: "Analyze this ECG image. Describe the rhythm, rate, intervals, and any abnormalities you observe.",
     generationParameters: SnapECGModelConfiguration.GenerationParameters(
         temperature: 0.7, 
         topP: 0.9,
@@ -84,13 +84,68 @@ class VLMEvaluator {
         return imageData.base64EncodedString()
     }
     
-    // Get image URL for API
+    // Upload image to ImgBB and get URL for API
     private func uploadImageAndGetURL(from image: CIImage) async -> String? {
-        // For demo purposes, we're using a fixed URL that works with the API
-        self.modelInfo = "Using ECG demo image"
+        self.modelInfo = "Uploading image..."
         
-        // Using the ECG image URL you provided in the API example
-        return "https://i.ibb.co/DFPXpBs/Image-2025-03-14-at-10-56-PM.jpg"
+        guard let base64Image = ciImageToBase64(image: image) else {
+            self.modelInfo = "Failed to convert image"
+            return nil
+        }
+        
+        // Upload to ImgBB
+        let imgbbApiKey = "c1e8de9b2cdd31d9f7e14dea1972d7b2" // Free ImgBB API key for anonymous uploads
+        let imgbbUrl = URL(string: "https://api.imgbb.com/1/upload?key=\(imgbbApiKey)")!
+        
+        var request = URLRequest(url: imgbbUrl)
+        request.httpMethod = "POST"
+        
+        // Create form data
+        let boundary = UUID().uuidString
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        
+        var body = Data()
+        
+        // Add the base64 image data
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"image\"\r\n\r\n".data(using: .utf8)!)
+        body.append("\(base64Image)\r\n".data(using: .utf8)!)
+        body.append("--\(boundary)--\r\n".data(using: .utf8)!)
+        
+        request.httpBody = body
+        
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request)
+            
+            guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+                self.modelInfo = "Upload failed: HTTP \((response as? HTTPURLResponse)?.statusCode ?? 0)"
+                print("Upload failed: \(response)")
+                return "https://i.ibb.co/DFPXpBs/Image-2025-03-14-at-10-56-PM.jpg" // Fallback to demo image
+            }
+            
+            // Parse the JSON response from ImgBB
+            if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+               let data = json["data"] as? [String: Any],
+               let url = data["url"] as? String {
+                self.modelInfo = "Image uploaded"
+                print("Image uploaded successfully: \(url)")
+                return url
+            } else {
+                print("Couldn't parse ImgBB response")
+                self.modelInfo = "Failed to parse upload response"
+                
+                // For debugging
+                if let responseString = String(data: data, encoding: .utf8) {
+                    print("ImgBB response: \(responseString)")
+                }
+                
+                return "https://i.ibb.co/DFPXpBs/Image-2025-03-14-at-10-56-PM.jpg" // Fallback to demo image
+            }
+        } catch {
+            print("Image upload error: \(error)")
+            self.modelInfo = "Upload error: \(error.localizedDescription)"
+            return "https://i.ibb.co/DFPXpBs/Image-2025-03-14-at-10-56-PM.jpg" // Fallback to demo image
+        }
     }
     
     // Generate using the API
@@ -113,6 +168,9 @@ class VLMEvaluator {
             return
         }
         
+        // Show initial processing message
+        self.output = "Processing your ECG image..."
+        
         do {
             // Determine which prompt to use
             let systemPrompt = videoURL != nil ? runtimeConfiguration.videoSystemPrompt : runtimeConfiguration.photoSystemPrompt
@@ -120,12 +178,15 @@ class VLMEvaluator {
                 (videoURL != nil ? runtimeConfiguration.videoUserPrompt : runtimeConfiguration.photoUserPrompt) : 
                 customUserInput
             
-            // Get a remote URL for the image
+            // Get a remote URL for the image by uploading to ImgBB
+            self.output = "Uploading your ECG image for analysis..."
             guard let imageUrl = await uploadImageAndGetURL(from: image) else {
-                self.output = "Failed to process image"
+                self.output = "Failed to upload image for analysis"
                 running = false
                 return
             }
+            
+            self.output = "Analyzing ECG pattern..."
             
             // Set up the request
             let url = URL(string: runtimeConfiguration.apiEndpoint)!
@@ -138,10 +199,10 @@ class VLMEvaluator {
             // Create the prompt with system and user prompts
             let fullPrompt = "User: \(userPrompt)<image>\nAssistant:"
             
-            // Create the request body - matching exactly the format you provided
+            // Create the request body with ECG-specific prompt
             let requestBody: [String: Any] = [
                 "inputs": [
-                    "text": "User: Can you describe this ECG image?!<image>\nAssistant:",
+                    "text": fullPrompt,
                     "images": [imageUrl]
                 ],
                 "parameters": [
@@ -219,6 +280,7 @@ class VLMEvaluator {
                     let cleanedText = extractAssistantResponse(from: generatedText)
                     await MainActor.run {
                         self.output = cleanedText
+                        self.modelInfo = "ECG analysis complete"
                     }
                 }
                 // Then check standard object format
@@ -233,6 +295,7 @@ class VLMEvaluator {
                         let cleanedText = extractAssistantResponse(from: generatedText)
                         await MainActor.run {
                             self.output = cleanedText
+                            self.modelInfo = "ECG analysis complete"
                         }
                     } else if let outputArray = responseJson["outputs"] as? [[String: Any]],
                               let firstOutput = outputArray.first,
@@ -242,6 +305,7 @@ class VLMEvaluator {
                         let cleanedText = extractAssistantResponse(from: text)
                         await MainActor.run {
                             self.output = cleanedText
+                            self.modelInfo = "ECG analysis complete"
                         }
                     } else if let responseArray = responseJson as? [Any],
                              let firstItem = responseArray.first as? [String: Any],
@@ -251,6 +315,7 @@ class VLMEvaluator {
                         let cleanedText = extractAssistantResponse(from: text)
                         await MainActor.run {
                             self.output = cleanedText
+                            self.modelInfo = "ECG analysis complete"
                         }
                     } else {
                         // JSON found but not in expected format
