@@ -1,7 +1,7 @@
 {
   "images" : [
     {
-      "filename" : "SmolVLM logo.png", /* Rename to "SnapECG logo.png" and replace with heart icon */
+      "filename" : "SnapECG logo.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"

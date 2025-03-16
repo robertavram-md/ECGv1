@@ -2,26 +2,20 @@
 
 ## Replacing the App Icon
 
-1. Replace the file `HuggingSnap/Assets.xcassets/AppIcon.appiconset/SmolVLM logo.png` with a new heart-themed icon for SnapECG.
+1. The app icon has been renamed from "SmolVLM logo.png" to "SnapECG logo.png", but still needs a design update.
 
-2. The icon should be a red heart on a white background or a heart ECG design in the same style as the current app design.
+2. Replace the file `HuggingSnap/Assets.xcassets/AppIcon.appiconset/SnapECG logo.png` with a new heart-themed icon.
 
-3. Icon requirements:
+3. The icon should be a red heart on a white background or a heart ECG design in the same style as the current app design.
+
+4. Icon requirements:
    - 1024x1024 pixels
    - PNG format
    - 72 DPI
    - sRGB color profile
    - No alpha/transparency
 
-4. After replacing the icon file, rename it to "SnapECG logo.png" and update the reference in Contents.json to match the new filename.
-
-5. You might need to run the following commands to update the app icon:
-   ```bash
-   cd /Users/papirobbi/Documents/GitHub/HuggingSnap
-   mv HuggingSnap/Assets.xcassets/AppIcon.appiconset/SmolVLM\ logo.png HuggingSnap/Assets.xcassets/AppIcon.appiconset/SnapECG\ logo.png
-   ```
-
-6. Then edit `HuggingSnap/Assets.xcassets/AppIcon.appiconset/Contents.json` to update the filename reference.
+5. The file reference in Contents.json has already been updated to "SnapECG logo.png".
 
 ## Icon Design Suggestions
 
