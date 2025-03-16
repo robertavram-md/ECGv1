@@ -1,6 +1,6 @@
 //
 //  SettingsView.swift
-//  HuggingSnap
+//  SnapECG
 //
 //  Created by Cyril Zakka on 2/24/25.
 //
@@ -37,7 +37,7 @@ struct SettingsView: View {
                             .foregroundStyle(.secondary)
                     } label: {
                         Label(title: {
-                            Text("HuggingSnap")
+                            Text("SnapECG")
                         }, icon: {
                             Image("huggy.fill")
                                 .renderingMode(.template)
@@ -71,7 +71,7 @@ struct SettingsView: View {
                     MailView(
                         result: self.$result,
                         recipients: ["support@huggingface.co"],
-                        subject: "HuggingSnap Feedback",
+                        subject: "SnapECG Feedback",
                         messageBody: "Please describe your issue below:\n\n\n\n\n" + UIDevice.getDeviceInfo(),
                         isHTML: false
                     )

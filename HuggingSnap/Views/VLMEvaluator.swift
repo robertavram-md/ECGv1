@@ -11,7 +11,7 @@ import UIKit // For UIImage
 
 // Runtime configuration for API access
 
-struct HuggingSnapModelConfiguration: Codable, Sendable {
+struct SnapECGModelConfiguration: Codable, Sendable {
     let videoSystemPrompt: String
     let videoUserPrompt: String
     let photoSystemPrompt: String
@@ -31,12 +31,12 @@ struct HuggingSnapModelConfiguration: Codable, Sendable {
 }
 
 // Default configuration
-fileprivate var runtimeConfiguration: HuggingSnapModelConfiguration = HuggingSnapModelConfiguration(
+fileprivate var runtimeConfiguration: SnapECGModelConfiguration = SnapECGModelConfiguration(
     videoSystemPrompt: "Focus only on describing the key dramatic action or notable event occurring in this video segment. Skip general context or scene-setting details unless they are crucial to understanding the main action.",
     videoUserPrompt: "What is the main action or notable event happening in this segment? Describe it in one brief sentence.",
     photoSystemPrompt: "You are an image understanding model capable of describing the salient features of any image.",
     photoUserPrompt: "Describe this image.",
-    generationParameters: HuggingSnapModelConfiguration.GenerationParameters(
+    generationParameters: SnapECGModelConfiguration.GenerationParameters(
         temperature: 0.7, 
         topP: 0.9,
         maxNewTokens: 512,

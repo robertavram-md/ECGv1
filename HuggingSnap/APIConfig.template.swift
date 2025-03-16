@@ -1,5 +1,5 @@
 // APIConfig.template.swift
-// This is a template for APIConfig.swift
+// This is a template for APIConfig.swift for SnapECG
 // Copy this file to APIConfig.swift and fill in your actual API keys
 
 import Foundation

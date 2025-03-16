@@ -1,6 +1,6 @@
 ////
 ////  ContentView.swift
-////  HuggingSnap
+////  SnapECG
 ////
 ////  Created by Cyril Zakka on 2/11/25.
 ////
@@ -139,7 +139,7 @@ struct ContentView: View {
                     
                     VStack {
                         VStack {
-                            Text("Visual Intelligence\nwith Hugging Face")
+                            Text("ECG Analysis\nwith AI")
                                 .font(.largeTitle)
                                 .fontWeight(.bold)
                                 .multilineTextAlignment(.center)
@@ -153,14 +153,14 @@ struct ContentView: View {
                                     )
                                 .padding(.bottom)
                             
-                            Text("Learn about the objects and places around you and get information about what you see")
+                            Text("Get AI-powered analysis of ECG images to help identify patterns and abnormalities")
                                 .font(.headline)
                                 .foregroundStyle(.primary)
                                 .fontWeight(.semibold)
                                 .multilineTextAlignment(.center)
                                 .padding(.bottom)
                             
-                            Text("Photos and videos used are processed entirely on your device. No data is sent to the cloud.")
+                            Text("ECG images are sent to a secure API for analysis. For educational purposes only.")
                                 .font(.body)
                                 .fontWeight(.medium)
                                 .foregroundStyle(.secondary)
