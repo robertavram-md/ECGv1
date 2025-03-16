@@ -73,9 +73,8 @@ struct ControlView: View {
                                 // ECG Interpretation
                                 llm.customUserInput = ""
                                 Task {
-                                    // Ensure the image is in horizontal orientation
-                                    let horizontalImage = uIImage.ensureHorizontalOrientation()
-                                    let ciImage = CIImage(image: horizontalImage)
+                                    // Image is already rotated at capture time
+                                    let ciImage = CIImage(image: uIImage)
                                     await llm.generate(image: ciImage ?? CIImage(), videoURL: nil)
                                 }
                                 
@@ -105,9 +104,8 @@ struct ControlView: View {
                             if case .loadedImage(let uIImage) = loadState {
                                 llm.customUserInput = ""
                                 Task {
-                                    // Ensure the image is in horizontal orientation (width > height)
-                                    let horizontalImage = uIImage.ensureHorizontalOrientation()
-                                    let ciImage = CIImage(image: horizontalImage)
+                                    // Image is already rotated at capture time
+                                    let ciImage = CIImage(image: uIImage)
                                     await llm.generate(image: ciImage ?? CIImage(), videoURL: nil)
                                 }
                             }
@@ -215,9 +213,8 @@ struct ControlView: View {
                             if case .loadedImage(let uIImage) = loadState {
                                 llm.customUserInput = "Analyze this ECG for signs of coronary artery disease."
                                 Task {
-                                    // Ensure the image is in horizontal orientation
-                                    let horizontalImage = uIImage.ensureHorizontalOrientation()
-                                    let ciImage = CIImage(image: horizontalImage)
+                                    // Image is already rotated at capture time
+                                    let ciImage = CIImage(image: uIImage)
                                     await llm.generate(image: ciImage ?? CIImage(), videoURL: nil)
                                 }
                             }

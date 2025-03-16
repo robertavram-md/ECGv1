@@ -83,8 +83,8 @@ struct ContentView: View {
                         // Black background for better ECG visibility
                         Color.black.edgesIgnoringSafeArea(.all)
                         
-                        // ECG image with improved display - enhanced for readability
-                        Image(uiImage: image.ensureHorizontalOrientation().enhanceForECGDisplay())
+                        // ECG image with improved display - already rotated and enhanced for readability
+                        Image(uiImage: image.enhanceForECGDisplay())
                             .resizable()
                             .scaledToFit()  // Scale to fit without cropping
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -218,7 +218,8 @@ struct ContentView: View {
                     model.toggleStreaming()
                 }
                 if let uiImage = UIImage(data: photoData) {
-                    // Ensure horizontal orientation for ECG images when captured
+                    // Forcibly rotate vertical images to horizontal for ECG viewing
+                    print("Processing captured photo")
                     let horizontalImage = uiImage.ensureHorizontalOrientation()
                     loadState = .loadedImage(horizontalImage)
                 }
@@ -257,9 +258,10 @@ struct ContentView: View {
                             loadState = .loadedMovie(video)
                             isCaptured = true
                         } else if let image = try await selectedItem?.loadTransferable(type: Data.self) {
-                            // Image
+                            // Image from photo picker
                             if let uiImage = UIImage(data: image) {
-                                // Ensure ECG image is in horizontal orientation
+                                print("Processing photo from picker")
+                                // Forcibly rotate vertical images to horizontal for ECG viewing
                                 let horizontalImage = uiImage.ensureHorizontalOrientation()
                                 loadState = .loadedImage(horizontalImage)
                             }
