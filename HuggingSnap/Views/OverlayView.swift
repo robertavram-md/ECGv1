@@ -1,6 +1,6 @@
 //
 //  OverlayView.swift
-//  HuggingSnap
+//  SnapECG
 //
 //  Created by Cyril Zakka on 2/12/25.
 //
@@ -25,15 +25,15 @@ struct MessageView: View {
                 .frame(maxHeight: 150)
                 
                 HStack(spacing:5) {
-                    Label("SmolVLM", image: "huggy.fill")
-                        .foregroundStyle(.yellow)
+                    Label("SnapECG", systemImage: "heart.fill")
+                        .foregroundStyle(.red)
                         .fontWeight(.semibold)
                         .font(.caption)
                     
                     Text("•")
                         .foregroundStyle(.secondary)
                     
-                    Text("Check important info for mistakes.")
+                    Text("For educational purposes only.")
                         .foregroundStyle(.secondary)
                         .fontWeight(.semibold)
                         .frame(maxWidth: .infinity, alignment: .leading)

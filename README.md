@@ -1,5 +1,5 @@
 <p align="center" style="margin-bottom: 0;">
-  <img src="HuggingSnap/Assets.xcassets/AppIcon.appiconset/SmolVLM logo.png" alt="SnapECG Banner">
+  <img src="HuggingSnap/Assets.xcassets/AppIcon.appiconset/SnapECG logo.png" alt="SnapECG Banner">
 </p>
 <h1 align="center" style="margin-top: 0;">SnapECG</h1>
 
