@@ -164,12 +164,8 @@ class VLMEvaluator {
             request.addValue("application/json", forHTTPHeaderField: "Content-Type")
             request.addValue("application/json", forHTTPHeaderField: "Accept")
             request.addValue("Bearer \(runtimeConfiguration.apiKey)", forHTTPHeaderField: "Authorization")
-            request.timeoutInterval = 30.0  // 30 second timeout
-            
-            // Get the appropriate system and user prompts
-            // System prompt is always "Caption this ECG."
-            let systemPrompt = "Caption this ECG."
-            
+            // No timeout - using system default for long-running requests
+
             // For user prompt, check if we have a custom input
             let userPromptToUse: String
             if !customUserInput.isEmpty {
@@ -212,8 +208,19 @@ class VLMEvaluator {
                 print("JSON being sent: \(jsonString)")
             }
             
-            // Make the API call
+            // Update UI before making the potentially long API call
+            await MainActor.run {
+                self.output = "Analyzing ECG... (this may take 30-60 seconds)"
+                self.modelInfo = "AI processing in progress..."
+            }
+            
+            // Make the API call (using system default timeout)
             let (data, response) = try await URLSession.shared.data(for: request)
+            
+            // Update UI after receiving response
+            await MainActor.run {
+                self.modelInfo = "Processing response..."
+            }
             
             guard let httpResponse = response as? HTTPURLResponse else {
                 print("Not an HTTP response")
